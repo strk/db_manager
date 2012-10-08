@@ -23,6 +23,7 @@ Based on qgis_pgis_topoview by Sandro Santilli <strk@keybit.net>
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+from qgis.core import *
 
 import os
 current_path = os.path.dirname(__file__)
@@ -73,39 +74,85 @@ def run(item, action, mainwindow):
 		return False
 
 	# create the new project from the template one
-	tpl_name = u'topoview.qgs.tpl'
+	#tpl_name = u'topoview.qgs.tpl'
 	toponame = item.schema().name
-	project_name = u'topoview_%s_%s.qgs' % (uri.database(), toponame)
+	#project_name = u'topoview_%s_%s.qgs' % (uri.database(), toponame)
 
-	template_file = os.path.join(current_path, tpl_name)
-	inf = QFile( template_file )
-	if not inf.exists():
-		QMessageBox.critical(mainwindow, "Error", u'Template "%s" not found!' % template_file)
-		return False
+	template_dir = os.path.join(current_path, 'templates')
 
-	project_file = os.path.join(current_path, project_name)
-	outf = QFile( project_file )
-	if not outf.open( QIODevice.WriteOnly ):
-		QMessageBox.critical(mainwindow, "Error", u'Unable to open "%s"' % project_file)
-		return False
+	#template_file = os.path.join(current_path, tpl_name)
+	#inf = QFile( template_file )
+	#if not inf.exists():
+	#	QMessageBox.critical(mainwindow, "Error", u'Template "%s" not found!' % template_file)
+	#	return False
 
-	if not inf.open( QIODevice.ReadOnly ):
-		QMessageBox.critical(mainwindow, "Error", u'Unable to open "%s"' % template_file)
-		return False
+	#project_file = os.path.join(current_path, project_name)
+	#outf = QFile( project_file )
+	#if not outf.open( QIODevice.WriteOnly ):
+	#	QMessageBox.critical(mainwindow, "Error", u'Unable to open "%s"' % project_file)
+	#	return False
 
-	while not inf.atEnd():
-		l = inf.readLine()
-		l = l.replace( u"dbname='@@DBNAME@@'", conninfo.toUtf8() )
-		l = l.replace( u'@@TOPONAME@@', toponame )
-		outf.write( l )
+	#if not inf.open( QIODevice.ReadOnly ):
+	#	QMessageBox.critical(mainwindow, "Error", u'Unable to open "%s"' % template_file)
+	#	return False
 
-	inf.close()
-	outf.close()
+	#while not inf.atEnd():
+	#	l = inf.readLine()
+	#	l = l.replace( u"dbname='@@DBNAME@@'", conninfo.toUtf8() )
+	#	l = l.replace( u'@@TOPONAME@@', toponame )
+	#	outf.write( l )
+
+	#inf.close()
+	#outf.close()
 
 	# load the project on QGis canvas
-	iface = mainwindow.iface
-	iface.newProject( True )
-	if iface.mapCanvas().layerCount() == 0:
-		iface.addProject( project_file )
+	registry = QgsMapLayerRegistry.instance()
+
+  # node
+	layer = db.toSqlLayer('SELECT * FROM "' + toponame + '".node', 'geom', 'node_id', toponame + '.nodes') 
+	layer.loadNamedStyle(os.path.join(template_dir, 'node.qml'))
+	registry.addMapLayer(layer)
+
+  # edge
+	layer = db.toSqlLayer('SELECT * FROM "' + toponame + '".edge_data', 'geom', 'edge_id', toponame + '.edges') 
+	layer.loadNamedStyle(os.path.join(template_dir, 'edge_style.qml'))
+	registry.addMapLayer(layer)
+
+  # face_left
+	layer = db.toSqlLayer('SELECT * FROM "' + toponame + '".edge_data', 'geom', 'edge_id', toponame + '.face_left') 
+	layer.loadNamedStyle(os.path.join(template_dir, 'face_left.qml'))
+	registry.addMapLayer(layer)
+
+  # face_right
+	layer = db.toSqlLayer('SELECT * FROM "' + toponame + '".edge_data', 'geom', 'edge_id', toponame + '.face_right') 
+	layer.loadNamedStyle(os.path.join(template_dir, 'face_right.qml'))
+	registry.addMapLayer(layer)
+
+  # next_left
+	layer = db.toSqlLayer('SELECT * FROM "' + toponame + '".edge_data', 'geom', 'edge_id', toponame + '.next_left') 
+	layer.loadNamedStyle(os.path.join(template_dir, 'next_left.qml'))
+	registry.addMapLayer(layer)
+
+  # next_right
+	layer = db.toSqlLayer('SELECT * FROM "' + toponame + '".edge_data', 'geom', 'edge_id', toponame + '.next_right') 
+	layer.loadNamedStyle(os.path.join(template_dir, 'next_right.qml'))
+	registry.addMapLayer(layer)
+
+  # face_seed
+	layer = db.toSqlLayer('SELECT face_id, ST_PointOnSurface(topology.ST_GetFaceGeometry(\'' + toponame + '\', face_id)) as geom FROM "' + toponame + '".face WHERE face_id > 0', 'geom', 'face_id', toponame + '.face_seed')
+	layer.loadNamedStyle(os.path.join(template_dir, 'face_seed.qml'))
+	registry.addMapLayer(layer)
+
+  # TODO: add polygon0, polygon1 and polygon2 ? 
+  # TODO: add full faces ?
+  # TODO: make default visibility
+
+
+#	iface = mainwindow.iface
+#	iface.newProject( True )
+#	if iface.mapCanvas().layerCount() == 0:
+#		iface.addProject( project_file )
+#		QgsProject.instance().dirty(True)
+
 	return True
 
