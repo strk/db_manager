@@ -59,6 +59,7 @@ def run(item, action, mainwindow):
 	db = item.database()
 	uri = db.uri()
 	conninfo = uri.connectionInfo()
+	iface = mainwindow.iface
 
 	# check if the selected item is a topology schema
 	isTopoSchema = False
@@ -77,6 +78,7 @@ def run(item, action, mainwindow):
 	toponame = item.schema().name
 	template_dir = os.path.join(current_path, 'templates')
 	registry = QgsMapLayerRegistry.instance()
+	legend = iface.legendInterface()
 
   # node
 	layer = db.toSqlLayer('SELECT * FROM "' + toponame + '".node', 'geom', 'node_id', toponame + '.nodes') 
@@ -102,20 +104,22 @@ def run(item, action, mainwindow):
 	layer = db.toSqlLayer('SELECT * FROM "' + toponame + '".edge_data', 'geom', 'edge_id', toponame + '.next_left') 
 	layer.loadNamedStyle(os.path.join(template_dir, 'next_left.qml'))
 	registry.addMapLayer(layer)
+	legend.setLayerVisible(layer, False)
 
   # next_right
 	layer = db.toSqlLayer('SELECT * FROM "' + toponame + '".edge_data', 'geom', 'edge_id', toponame + '.next_right') 
 	layer.loadNamedStyle(os.path.join(template_dir, 'next_right.qml'))
 	registry.addMapLayer(layer)
+	legend.setLayerVisible(layer, False)
 
   # face_seed
 	layer = db.toSqlLayer('SELECT face_id, ST_PointOnSurface(topology.ST_GetFaceGeometry(\'' + toponame + '\', face_id)) as geom FROM "' + toponame + '".face WHERE face_id > 0', 'geom', 'face_id', toponame + '.face_seed')
 	layer.loadNamedStyle(os.path.join(template_dir, 'face_seed.qml'))
 	registry.addMapLayer(layer)
+	legend.setLayerVisible(layer, False)
 
-  # TODO: add polygon0, polygon1 and polygon2 ? 
   # TODO: add full faces ?
-  # TODO: make default visibility
+  # TODO: add polygon0, polygon1 and polygon2 ? 
 
 	return True
 
