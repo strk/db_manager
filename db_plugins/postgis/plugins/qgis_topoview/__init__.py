@@ -80,46 +80,56 @@ def run(item, action, mainwindow):
 	registry = QgsMapLayerRegistry.instance()
 	legend = iface.legendInterface()
 
+	group = legend.addGroup(toponame + ' topology')
+
   # node
 	layer = db.toSqlLayer('SELECT * FROM "' + toponame + '".node', 'geom', 'node_id', toponame + '.nodes') 
 	layer.loadNamedStyle(os.path.join(template_dir, 'node.qml'))
 	registry.addMapLayer(layer)
+	legend.moveLayer(layer, group)
 
   # edge
 	layer = db.toSqlLayer('SELECT * FROM "' + toponame + '".edge_data', 'geom', 'edge_id', toponame + '.edges') 
 	layer.loadNamedStyle(os.path.join(template_dir, 'edge_style.qml'))
 	registry.addMapLayer(layer)
+	legend.moveLayer(layer, group)
 
   # face_left
 	layer = db.toSqlLayer('SELECT * FROM "' + toponame + '".edge_data', 'geom', 'edge_id', toponame + '.face_left') 
 	layer.loadNamedStyle(os.path.join(template_dir, 'face_left.qml'))
 	registry.addMapLayer(layer)
+	legend.moveLayer(layer, group)
 
   # face_right
 	layer = db.toSqlLayer('SELECT * FROM "' + toponame + '".edge_data', 'geom', 'edge_id', toponame + '.face_right') 
 	layer.loadNamedStyle(os.path.join(template_dir, 'face_right.qml'))
 	registry.addMapLayer(layer)
+	legend.moveLayer(layer, group)
 
   # next_left
 	layer = db.toSqlLayer('SELECT * FROM "' + toponame + '".edge_data', 'geom', 'edge_id', toponame + '.next_left') 
 	layer.loadNamedStyle(os.path.join(template_dir, 'next_left.qml'))
 	registry.addMapLayer(layer)
 	legend.setLayerVisible(layer, False)
+	legend.moveLayer(layer, group)
 
   # next_right
 	layer = db.toSqlLayer('SELECT * FROM "' + toponame + '".edge_data', 'geom', 'edge_id', toponame + '.next_right') 
 	layer.loadNamedStyle(os.path.join(template_dir, 'next_right.qml'))
 	registry.addMapLayer(layer)
 	legend.setLayerVisible(layer, False)
+	legend.moveLayer(layer, group)
 
   # face_seed
 	layer = db.toSqlLayer('SELECT face_id, ST_PointOnSurface(topology.ST_GetFaceGeometry(\'' + toponame + '\', face_id)) as geom FROM "' + toponame + '".face WHERE face_id > 0', 'geom', 'face_id', toponame + '.face_seed')
 	layer.loadNamedStyle(os.path.join(template_dir, 'face_seed.qml'))
 	registry.addMapLayer(layer)
 	legend.setLayerVisible(layer, False)
+	legend.moveLayer(layer, group)
 
   # TODO: add full faces ?
   # TODO: add polygon0, polygon1 and polygon2 ? 
+  # TODO: disable signals while adding all layers, then send a single one
 
 	return True
 
