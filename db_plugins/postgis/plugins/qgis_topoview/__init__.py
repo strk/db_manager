@@ -73,39 +73,9 @@ def run(item, action, mainwindow):
 		QMessageBox.critical(mainwindow, "Invalid topology", u'Schema "%s" is not registered in topology.topology.' % item.schema().name)
 		return False
 
-	# create the new project from the template one
-	#tpl_name = u'topoview.qgs.tpl'
+	# load layers into the current project 
 	toponame = item.schema().name
-	#project_name = u'topoview_%s_%s.qgs' % (uri.database(), toponame)
-
 	template_dir = os.path.join(current_path, 'templates')
-
-	#template_file = os.path.join(current_path, tpl_name)
-	#inf = QFile( template_file )
-	#if not inf.exists():
-	#	QMessageBox.critical(mainwindow, "Error", u'Template "%s" not found!' % template_file)
-	#	return False
-
-	#project_file = os.path.join(current_path, project_name)
-	#outf = QFile( project_file )
-	#if not outf.open( QIODevice.WriteOnly ):
-	#	QMessageBox.critical(mainwindow, "Error", u'Unable to open "%s"' % project_file)
-	#	return False
-
-	#if not inf.open( QIODevice.ReadOnly ):
-	#	QMessageBox.critical(mainwindow, "Error", u'Unable to open "%s"' % template_file)
-	#	return False
-
-	#while not inf.atEnd():
-	#	l = inf.readLine()
-	#	l = l.replace( u"dbname='@@DBNAME@@'", conninfo.toUtf8() )
-	#	l = l.replace( u'@@TOPONAME@@', toponame )
-	#	outf.write( l )
-
-	#inf.close()
-	#outf.close()
-
-	# load the project on QGis canvas
 	registry = QgsMapLayerRegistry.instance()
 
   # node
@@ -146,13 +116,6 @@ def run(item, action, mainwindow):
   # TODO: add polygon0, polygon1 and polygon2 ? 
   # TODO: add full faces ?
   # TODO: make default visibility
-
-
-#	iface = mainwindow.iface
-#	iface.newProject( True )
-#	if iface.mapCanvas().layerCount() == 0:
-#		iface.addProject( project_file )
-#		QgsProject.instance().dirty(True)
 
 	return True
 
